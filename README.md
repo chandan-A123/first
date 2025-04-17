@@ -2,6 +2,10 @@
 
 To install dependencies:
 
+ADD the env veriables by creating .env file
+
+
+
 ```bash
 bun install
 ```
