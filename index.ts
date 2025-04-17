@@ -17,5 +17,5 @@ app.get("/login",(req:Request, res:Response) =>{
     res.sendFile('/public/login.html',{root:__dirname});
 })
 app.listen(PORT, () => {
-    console.log("Server started on port 3000");
+    console.log(`Server started on port ${process.env.PORT}`);
 });
