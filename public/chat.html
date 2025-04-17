@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gemini Chat App</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #eef2f5;
+    }
+    .chat-container {
+      max-width: 600px;
+      height: 90vh;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    .messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 8px;
+      max-width: 80%;
+    }
+    .user {
+      background: #007bff;
+      color: white;
+      align-self: flex-end;
+    }
+    .bot {
+      background: #e4e6eb;
+      color: black;
+      align-self: flex-start;
+    }
+    .input-area {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      font-size: 16px;
+      outline: none;
+    }
+    button {
+      padding: 0 25px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type a message..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const API_KEY = "AIzaSyDua3oug9q_gS5lioN3kHW_RaBC2SQU6xU"; // Replace with your API key
+    const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+    const messagesDiv = document.getElementById("messages");
+    const inputBox = document.getElementById("userInput");
+
+    function appendMessage(content, sender) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.textContent = content;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendMessage() {
+      const text = inputBox.value.trim();
+      if (!text) return;
+
+      appendMessage(text, "user");
+      inputBox.value = "";
+
+      appendMessage("Typing...", "bot");
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text }] }]
+          })
+        });
+
+        const data = await res.json();
+
+        // Remove "Typing..." placeholder
+        const loading = document.querySelector(".bot:last-child");
+        if (loading) loading.remove();
+
+        if (res.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+          const reply = data.candidates[0].content.parts[0].text;
+          appendMessage(reply, "bot");
+        } else {
+          throw new Error(data.error?.message || "Invalid response from Gemini.");
+        }
+
+      } catch (err) {
+        console.error("Gemini API Error:", err);
+        alert("Error: " + err.message);
+
+        const loading = document.querySelector(".bot:last-child");
+        if (loading) loading.remove();
+
+        appendMessage("⚠️ Error: " + err.message, "bot");
+      }
+    }
+
+    inputBox.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
