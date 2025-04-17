@@ -12,7 +12,9 @@ app.get("/hi", (req, res) => {
 
     res.send("HI!");
 });
-
+app.get("/login",(req, res) =>{
+    res.sendFile('/public/login.html',{root:__dirname});
+})
 app.listen(PORT, () => {
     console.log("Server started on port 3000");
 });
